@@ -1,45 +1,57 @@
 import os
-from pytube import YouTube
-import requests
+import subprocess
+from flask import Flask, request as flask_request, jsonify
+from flask_cors import CORS
 
-from pytube import request
+app = Flask(__name__)
+# Enable CORS for the endpoint.
+CORS(app, resources={r"/download_video": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization", "X-Requested-With"])
 
-# Add this before creating the YouTube object
-request.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-
-def check_video_access(url):
-    response = requests.get(url)
-    print(f"Status Code: {response.status_code}")
-    if response.status_code == 200:
-        print("Video is accessible!")
-    else:
-        print("YouTube is blocking the request.")
-
-url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-check_video_access(url)
-
-
-def download_video(url, folder="videos"):
+def download_video_with_ytdlp(url, folder="videos"):
+    """
+    Uses yt-dlp to download a video from the given URL.
+    The video is saved in the specified folder.
+    Returns the path to the downloaded video file, or None if failed.
+    """
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    
+    # The output template: save file as "title.ext" in the folder.
+    output_template = os.path.join(folder, "%(title)s.%(ext)s")
+    
+    command = ["yt-dlp", "-f", "mp4", "-o", output_template, url]
     try:
-        yt = YouTube(url)
-        streams = yt.streams.filter(progressive=True, file_extension="mp4")
-        if not streams:
-            print("No valid stream found.")
+        # Run the yt-dlp command
+        subprocess.run(command, check=True)
+        
+        # Find the downloaded file in the folder
+        files = os.listdir(folder)
+        mp4_files = [f for f in files if f.endswith(".mp4")]
+        if mp4_files:
+            # For simplicity, return the first MP4 file found
+            video_path = os.path.join(folder, mp4_files[0])
+            print(f"Video downloaded successfully: {video_path}")
+            return video_path
+        else:
+            print("No MP4 file found after download.")
             return None
-        
-        stream = streams.get_highest_resolution()
-        
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        
-        output_path = os.path.join(folder, f"{yt.title}.mp4")
-        stream.download(output_path=folder)
-        
-        print(f"Video downloaded successfully: {output_path}")
-        return output_path
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while downloading video: {e}")
         return None
 
-url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-download_video(url)
+@app.route('/download_video', methods=['POST'])
+def download_video_api():
+    data = flask_request.get_json()
+    url = data.get("url")
+    
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
+    video_path = download_video_with_ytdlp(url)
+    if video_path:
+        return jsonify({"message": "Video downloaded successfully", "path": video_path}), 200
+    else:
+        return jsonify({"error": "Failed to download video"}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True)
