@@ -1,0 +1,1 @@
+flask is a minimalistic web framework which turns request handling into its most basic possible form, a function . create a file ending in.py and create an application object . then decorate it with app.route and a path . this function will now be called whenever a request hits the server .

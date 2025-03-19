@@ -1,0 +1,87 @@
+(venv) manihar@manihar-ThinkPad-T480s:~/video summarizer/backend/app$ python3 app.py 
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 119-065-931
+ * Detected change in '/home/manihar/video summarizer/backend/app/app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 119-065-931
+127.0.0.1 - - [18/Mar/2025 22:03:08] "OPTIONS /process_video HTTP/1.1" 200 -
+Downloading video...
+[youtube] Extracting URL: https://youtu.be/dC7efRBE-Aw?si=w1EmF_laP4iKOEFc
+[youtube] dC7efRBE-Aw: Downloading webpage
+[youtube] dC7efRBE-Aw: Downloading tv client config
+[youtube] dC7efRBE-Aw: Downloading player 7d1d50a6
+[youtube] dC7efRBE-Aw: Downloading tv player API JSON
+[youtube] dC7efRBE-Aw: Downloading ios player API JSON
+[youtube] dC7efRBE-Aw: Downloading m3u8 information
+[info] dC7efRBE-Aw: Downloading 1 format(s): 18
+[download] Destination: videos/What is Flask in Python ｜ HINDI ｜ हिंदी  ？.mp4
+[download] 100% of    6.46MiB in 00:00:04 at 1.35MiB/s
+Video downloaded successfully: videos/CORS in 100 Seconds.mp4
+Extracting audio...
+ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Ubuntu 13.2.0-23ubuntu3)
+  configuration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'videos/CORS in 100 Seconds.mp4':
+  Metadata:
+    major_brand     : mp42
+    minor_version   : 0
+    compatible_brands: isommp42
+    creation_time   : 2021-03-29T20:04:28.000000Z
+  Duration: 00:02:30.84, start: 0.000000, bitrate: 181 kb/s
+  Stream #0:0[0x1](und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 640x360 [SAR 1:1 DAR 16:9], 49 kb/s, 29.97 fps, 29.97 tbr, 30k tbn (default)
+    Metadata:
+      creation_time   : 2021-03-29T20:04:28.000000Z
+      handler_name    : ISO Media file produced by Google Inc. Created on: 03/29/2021.
+      vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+    Metadata:
+      creation_time   : 2021-03-29T20:04:28.000000Z
+      handler_name    : ISO Media file produced by Google Inc. Created on: 03/29/2021.
+      vendor_id       : [0][0][0][0]
+File './audio/CORS in 100 Seconds.mp3' already exists. Overwrite? [y/N] y
+Stream mapping:
+  Stream #0:1 -> #0:0 (aac (native) -> mp3 (libmp3lame))
+Press [q] to stop, [?] for help
+Output #0, mp3, to './audio/CORS in 100 Seconds.mp3':
+  Metadata:
+    major_brand     : mp42
+    minor_version   : 0
+    compatible_brands: isommp42
+    TSSE            : Lavf60.16.100
+  Stream #0:0(eng): Audio: mp3, 44100 Hz, stereo, fltp (default)
+    Metadata:
+      creation_time   : 2021-03-29T20:04:28.000000Z
+      handler_name    : ISO Media file produced by Google Inc. Created on: 03/29/2021.
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libmp3lame
+[out#0/mp3 @ 0x5d33121a5780] video:0kB audio:2358kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.014332%
+size=    2358kB time=00:02:30.83 bitrate= 128.1kbits/s speed=24.2x    
+Transcribing audio...
+Device set to use cpu
+Starting transcription...
+/home/manihar/video summarizer/venv/lib/python3.12/site-packages/transformers/models/whisper/generation_whisper.py:573: FutureWarning: The input name `inputs` is deprecated. Please make sure to use `input_features` instead.
+  warnings.warn(
+Due to a bug fix in https://github.com/huggingface/transformers/pull/28687 transcription using a multilingual Whisper will default to language detection followed by transcription instead of translation to English.This might be a breaking change for your use case. If you want to instead always translate your audio to English, make sure to pass `language='en'`.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Transcription completed.
+Transcript saved to: ./transcripts/CORS in 100 Seconds_transcript.txt
+Successfully verified transcript file at: ./transcripts/CORS in 100 Seconds_transcript.txt
+Summarizing...
+Device set to use cpu
+Token indices sequence length is longer than the specified maximum sequence length for this model (701 > 512). Running this sequence through the model will result in indexing errors
+127.0.0.1 - - [18/Mar/2025 22:07:31] "POST /process_video HTTP/1.1" 200 -

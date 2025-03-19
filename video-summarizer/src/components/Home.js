@@ -5,65 +5,81 @@ import api from "../utilities/api";
 function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [videoPath, setVideoPath] = useState("");
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState('');
+  const [summary, setSummary] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
+    setError('');
+    setSummary('');
+    setStatus('Starting process...');
 
     try {
-      // Sending the URL in a POST request to your Flask endpoint '/download_video'
-      const response = await api.post("/download_video", { url });
-      
-      // Response will contain the transcript, summary, or in our case, the video path
-      if (response.data && response.data.path) {
-        setVideoPath(response.data.path);
-        setMessage("Video downloaded successfully!");
-      } else {
-        setMessage("Unexpected response from the server.");
+      const response = await fetch('http://127.0.0.1:5000/process_video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong');
       }
-    } catch (error) {
-      console.error("Error during API call:", error);
-      setMessage("An error occurred while processing the video.");
+
+      setStatus(data.message);
+      
+      if (data.status === 'completed') {
+        setSummary(data.summary);
+      }
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="container">
-      <header className="header">
-        <h1>Video Downloader</h1>
-        <p>Enter a video URL to download the video.</p>
-      </header>
-      <main className="main-content">
-        <form onSubmit={handleSubmit} className="url-form">
+      <h1>Video Summarizer</h1>
+
+      <form onSubmit={handleSubmit} className="form">
+        <div className="input-group">
           <input
             type="text"
-            placeholder="Enter video URL"
+            placeholder="Enter YouTube URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            disabled={loading}
             className="url-input"
           />
-          <button type="submit" className="submit-button">
-            {loading ? "Processing..." : "Submit"}
+          <button 
+            type="submit" 
+            disabled={loading || !url}
+            className="submit-button"
+          >
+            {loading ? 'Processing...' : 'Process'}
           </button>
-        </form>
-        {message && <p className="message">{message}</p>}
-        {videoPath && (
-          <div className="result">
-            <h2>Download Path:</h2>
-            <p>{videoPath}</p>
-          </div>
-        )}
-      </main>
-      <footer className="footer">
-        <p>© 2025 Video Downloader. All Rights Reserved.</p>
-      </footer>
+        </div>
+      </form>
+
+      {error && <div className="error">{error}</div>}
+      
+      {status && <div className="status">{status}</div>}
+
+      {summary && (
+        <div className="summary-container">
+          <h2>Summary</h2>
+          <p>{summary}</p>
+        </div>
+      )}
     </div>
   );
 }
-
 
 export default Home;
