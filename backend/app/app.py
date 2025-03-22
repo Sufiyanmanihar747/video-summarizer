@@ -1,14 +1,26 @@
+from datetime import timedelta
 import os
 import subprocess
 from flask import Flask, request as flask_request, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 from extract_audio import extract_audio
 from transcribe import transcribe_audio
 from summarize import summarize_text
+from werkzeug.security import generate_password_hash, check_password_hash
+from config import users
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+app.config["JWT_SECRET_KEY"] = "your-secret-key"  # Change this!
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
+jwt = JWTManager(app)
+
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 # Enable CORS for the endpoint.
-CORS(app, resources={r"/process_video": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization", "X-Requested-With"])
+# CORS(app, resources={r"/process_video": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization", "X-Requested-With"])
+
 
 def download_video_with_ytdlp(url, folder="videos"):
    
@@ -50,7 +62,75 @@ def generate_unique_filename(url):
         video_id = timestamp
     return f"{timestamp}_{video_id}"
 
+@app.route('/register', methods=['POST'])
+def register():
+    try:
+        data = flask_request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        full_name = data.get('fullName')
+        
+        if not email or not password or not full_name:
+            return jsonify({"error": "All fields are required"}), 400
+            
+        if users.find_one({"email": email}):
+            return jsonify({"error": "Email already exists"}), 400
+            
+        hashed_password = generate_password_hash(password)
+        
+        users.insert_one({
+            "email": email,
+            "password": hashed_password,
+            "full_name": full_name
+        })
+        
+        return jsonify({"message": "User registered successfully"}), 201
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        data = flask_request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        user = users.find_one({"email": email})
+        
+        if not user or not check_password_hash(user['password'], password):
+            return jsonify({"error": "Invalid email or password"}), 401
+            
+        access_token = create_access_token(identity=email)
+        
+        return jsonify({
+            "token": access_token,
+            "user": {
+                "email": user['email'],
+                "full_name": user.get('full_name')
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/check_auth', methods=['GET'])
+@jwt_required()
+def check_auth():
+    current_user_email = get_jwt_identity()
+    user = users.find_one({"email": current_user_email})
+    
+    if user:
+        return jsonify({
+            "user": {
+                "email": user['email'],
+                "full_name": user.get('full_name')
+            }
+        }), 200
+    return jsonify({"error": "User not found"}), 404
+
 @app.route('/process_video', methods=['POST'])
+@jwt_required()
 def process_video():
     try:
         data = flask_request.get_json()
