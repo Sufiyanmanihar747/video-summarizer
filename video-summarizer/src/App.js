@@ -5,6 +5,7 @@ import { UserProvider, useUser } from './context/UserContext';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
+import History from './components/History';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useUser();
@@ -52,6 +53,14 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <Home />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/history" 
+        element={
+          <PrivateRoute>
+            <History />
           </PrivateRoute>
         } 
       />

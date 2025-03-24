@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import './Header.css';
+import { Link } from 'react-router-dom';
 
 function Header() {
   const { user, logout } = useUser();
@@ -23,18 +24,18 @@ function Header() {
             <h1>Video Summarizer</h1>
           </div>
           <nav className={`nav-menu ${showMobileMenu ? 'active' : ''}`}>
-            <a href="#" className="nav-link active">
-              <i className="fas fa-home"></i>
-              Home
-            </a>
-            <a href="#" className="nav-link">
-              <i className="fas fa-history"></i>
-              History
-            </a>
-            <a href="#" className="nav-link">
-              <i className="fas fa-star"></i>
-              Favorites
-            </a>
+          <Link to="/" className="nav-link active">
+            <i className="fas fa-home"></i>
+            Home
+          </Link>
+          <Link to="/history" className="nav-link">
+            <i className="fas fa-history"></i>
+            History
+          </Link>
+          <Link to="/favorites" className="nav-link">
+            <i className="fas fa-star"></i>
+            Favorites
+          </Link>
           </nav>
         </div>
 

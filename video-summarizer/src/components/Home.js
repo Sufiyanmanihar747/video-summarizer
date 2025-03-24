@@ -23,6 +23,14 @@ function Home() {
       if (response.data.summary) {
         setSummary(response.data.summary);
         setStatus('Summary generated successfully!');
+
+        await api.post('/save_summary', {
+          url,
+          title: response.data.title || 'Untitled Video',
+          summary: response.data.summary,
+          url: response.data.url,
+          transcription: response.data.transcript || '',
+        });
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
