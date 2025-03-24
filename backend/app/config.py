@@ -20,5 +20,6 @@ try:
 except Exception as e:
     print(f"Failed to connect to MongoDB Atlas: {e}")
 
-# Export the users collection
+# Export the collections
 users = users_collection
+summaries = summaries_collection
