@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from './Header';
 import "./Home.css";
 import api from "../utilities/api";
@@ -37,6 +37,26 @@ function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const TypingText = ({ text, speed = 10 }) => {
+    const [displayedText, setDisplayedText] = useState("");
+  
+    useEffect(() => {
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < text.length) {
+          setDisplayedText((prev) => prev + text[index]);
+          index++;
+        } else {
+          clearInterval(interval);
+        }
+      }, speed);
+  
+      return () => clearInterval(interval);
+    }, [text, speed]);
+  
+    return <p>{displayedText}</p>;
   };
 
   return (
@@ -139,7 +159,7 @@ function Home() {
                 </div>
               </div>
               <div className="summary-content">
-                <p>{summary}</p>
+                <TypingText text={summary} />
               </div>
             </div>
           )}

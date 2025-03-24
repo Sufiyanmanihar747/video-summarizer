@@ -43,6 +43,58 @@ function History() {
     });
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText("Your text here").then(() => {
+      alert("Copied to clipboard!");
+    });
+  };
+  
+  const handleDownload = () => {
+    const blob = new Blob(["Your text here"], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "file.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Share this",
+          text: "Check this out!",
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      alert("Web Share API not supported in this browser.");
+    }
+  };
+
+  const TypingText = ({ text, speed = 10 }) => {
+    const [displayedText, setDisplayedText] = useState("");
+  
+    useEffect(() => {
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < text.length) {
+          setDisplayedText((prev) => prev + text[index]);
+          index++;
+        } else {
+          clearInterval(interval);
+        }
+      }, speed);
+  
+      return () => clearInterval(interval);
+    }, [text, speed]);
+  
+    return <p>{displayedText}</p>;
+  };
+
   return (
     <div className="history-container">
       <Header />
@@ -87,46 +139,46 @@ function History() {
             <p>No summaries found</p>
           </div>
         ) : (
-          <div className="history-grid">
+          <div className="history-list">
             {filteredHistory.map((item, index) => (
-              <div 
-                key={index} 
-                className="history-card"
-                onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}
-              >
-                <div className="history-card-header">
-                  <h3>{item.title}</h3>
-                  <span className="date">{formatDate(item.created_at)}</span>
+              <div key={index} className="history-item">
+                <div className="history-item-header" onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}>
+                  <div className="header-content">
+                    <h3>{item.title.replace(/videos\//, '').replace(/\.mp4$/, '')}</h3>
+                    <span className="date">{formatDate(item.created_at)}</span>
+                  </div>
+                  <i className={`fas fa-chevron-${selectedSummary === item ? 'up' : 'down'}`}></i>
                 </div>
-                <div className="history-card-content">
-                  <p className="summary-preview">{item.summary.substring(0, 150)}...</p>
-                  {selectedSummary === item && (
-                    <div className="expanded-content">
-                      <div className="section">
-                        <h4>Full Summary</h4>
-                        <p>{item.summary}</p>
-                      </div>
-                      <div className="section">
-                        <h4>Transcription</h4>
-                        <p>{item.transcription}</p>
-                      </div>
-                      <div className="actions">
-                        <button className="action-button">
-                          <i className="fas fa-copy"></i>
-                          Copy
-                        </button>
-                        <button className="action-button">
-                          <i className="fas fa-download"></i>
-                          Download
-                        </button>
-                        <button className="action-button">
-                          <i className="fas fa-share"></i>
-                          Share
-                        </button>
+                
+                {selectedSummary === item && (
+                  <div className="history-item-content">
+                    <div className="content-section summary-section">
+                      <h4>Summary</h4>
+                      <div className="content-box">
+                      <TypingText text={item.summary} />
                       </div>
                     </div>
-                  )}
-                </div>
+                    
+                    <div className="content-section transcription-section">
+                      <h4>Transcription</h4>
+                      <div className="content-box">
+                        <p>{item.transcription}</p>
+                      </div>
+                    </div>
+
+                    <div className="actions">
+                      <button className="action-button" onClick={() => handleCopy()}>
+                        <i className="fas fa-copy"></i> Copy
+                      </button>
+                      <button className="action-button" onClick={() => handleDownload()}>
+                        <i className="fas fa-download"></i> Download
+                      </button>
+                      {/* <button className="action-button" onClick={() => handleShare()}>
+                        <i className="fas fa-share"></i> Share
+                      </button> */}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

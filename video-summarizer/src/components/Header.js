@@ -32,10 +32,10 @@ function Header() {
             <i className="fas fa-history"></i>
             History
           </Link>
-          <Link to="/favorites" className="nav-link">
+          {/* <Link to="/favorites" className="nav-link">
             <i className="fas fa-star"></i>
             Favorites
-          </Link>
+          </Link> */}
           </nav>
         </div>
 
@@ -48,8 +48,8 @@ function Header() {
               </div>
               
               <div className="notification-bell">
-                <i className="fas fa-bell"></i>
-                <span className="notification-badge">3</span>
+                {/* <i className="fas fa-bell"></i>
+                <span className="notification-badge">3</span> */}
               </div>
 
               <div className="user-profile" onClick={() => setShowDropdown(!showDropdown)}>
