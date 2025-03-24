@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 import os
 import subprocess
 from flask import Flask, request as flask_request, jsonify
@@ -8,7 +8,7 @@ from extract_audio import extract_audio
 from transcribe import transcribe_audio
 from summarize import summarize_text
 from werkzeug.security import generate_password_hash, check_password_hash
-from config import users
+from config import users, summaries
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -166,6 +166,9 @@ def process_video():
         if not transcript_path:
             return jsonify({"error": "Failed to transcribe audio"}), 500
         
+        with open(transcript_path, "r", encoding="utf-8") as file:
+            transcript_content = file.read()
+        
         response["message"] = "Generated transcript"
 
         # Step 4: Summarize Transcript
@@ -177,7 +180,10 @@ def process_video():
         response["status"] = "completed"
         response["message"] = "Process completed!"
         response["summary"] = summary
-
+        response['title'] = video_path
+        response['url'] = url
+        response['transcript'] = transcript_content
+        
         return jsonify(response), 200
 
     except Exception as e:
@@ -193,6 +199,43 @@ def get_status():
         "summaries": os.listdir("summaries") if os.path.exists("summaries") else []
     }
     return jsonify(status), 200
+
+@app.route('/save_summary', methods=['POST'])
+@jwt_required()
+def save_summary():
+    try:
+        current_user = get_jwt_identity()
+        data = flask_request.get_json()
+        
+        summary_data = {
+            "user_email": current_user,
+            "video_url": data.get('url'),
+            "title": data.get('title'),
+            "summary": data.get('summary'),
+            "transcription": data.get('transcription'),
+            "created_at": datetime.utcnow()
+        }
+        
+        summaries.insert_one(summary_data)
+        return jsonify({"message": "Summary saved successfully"}), 201
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_history', methods=['GET'])
+@jwt_required()
+def get_history():
+    try:
+        current_user = get_jwt_identity()
+        user_summaries = list(summaries.find(
+            {"user_email": current_user},
+            {"_id": 0}
+        ).sort("created_at", -1))
+        
+        return jsonify({"history": user_summaries}), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
 
