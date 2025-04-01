@@ -217,3 +217,160 @@
   padding: 0px !important;
   margin-top: 2rem;
 }
+
+.quiz-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.quiz-modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-quiz-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.close-quiz-btn:hover {
+  color: #2d3748;
+}
+
+.quiz-button {
+  background: #667eea !important;
+  color: white !important;
+}
+
+.quiz-button:hover {
+  background: #5a67d8 !important;
+}
+
+/* Responsive styles for quiz modal */
+@media (max-width: 768px) {
+  .quiz-overlay {
+    padding: 1rem;
+  }
+
+  .quiz-modal {
+    max-height: 95vh;
+  }
+}
+
+/* Update existing action button styles */
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.action-button:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.action-button i {
+  font-size: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.gemini-button {
+  background-color: #8e44ad;
+  color: white;
+}
+
+.gemini-button:hover {
+  background-color: #732d91;
+}
+
+.gemini-button.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.gemini-questions-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.question-item {
+  padding: 15px;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.question-text {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.options-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.option {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.option.correct {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.explanation {
+  margin-top: 10px;
+  font-style: italic;
+  color: #666;
+}

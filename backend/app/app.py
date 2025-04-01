@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
 import os
 import subprocess
+from threading import get_native_id
 from flask import Flask, request as flask_request, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -9,6 +10,9 @@ from transcribe import transcribe_audio
 from summarize import summarize_text
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import users, summaries
+from question_generator import question_generator
+import google.generativeai as genai
+import json
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -21,6 +25,10 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_cred
 # Enable CORS for the endpoint.
 # CORS(app, resources={r"/process_video": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization", "X-Requested-With"])
 
+# Configure Gemini with your free API key
+genai.configure(api_key='AIzaSyA1mBE3clDzxBZstTBzIAxHKbaX4H38Afk')
+
+model = genai.GenerativeModel('gemini-1.5-pro')  # Updated model name
 
 def download_video_with_ytdlp(url, folder="videos"):
    
@@ -236,6 +244,107 @@ def get_history():
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/generate_questions', methods=['POST'])
+@jwt_required()
+def generate_questions():
+    try:
+        data = flask_request.get_json()
+        text = data.get('text', '')
+        num_questions = data.get('num_questions', 3)  
+
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+
+        questions = question_generator.generate_questions(text, num_questions)
+        
+        print(f"Returning {len(questions)} questions")
+        
+        return jsonify({
+            "success": True,
+            "questions": questions
+        }), 200
+
+    except Exception as e:
+        print(f"Error in generate_questions route: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/generate_gemini_questions', methods=['POST'])
+@jwt_required()
+def generate_gemini_questions():
+    try:
+        data = flask_request.get_json()
+        text = data.get('text', '')
+
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+
+        # Simplified prompt
+        prompt = f"""
+        Create 3 multiple choice questions based on this text. Format as JSON array.
+        Each question needs:
+        - Question text
+        - 4 options (1 correct, 3 incorrect)
+        - Correct answer index (0-3)
+        - Brief explanation
+
+        Text: {text}
+
+        Format:
+        [
+          {{
+            "question": "What is...",
+            "options": ["A", "B", "C", "D"],
+            "correct_answer": 0,
+            "explanation": "Because..."
+          }}
+        ]
+        """
+
+        print("Sending request to Gemini...")
+        response = model.generate_content(prompt)
+        print(f"Received response: {response.text[:100]}...") 
+
+        # Parse response
+        try:
+            response_text = response.text.strip()
+            response_text = response_text.replace('```json', '').replace('```', '').strip()
+            
+            print(f"Cleaned response text: {response_text[:100]}...")
+            questions = json.loads(response_text)
+            
+            validated_questions = []
+            for q in questions:
+                if all(key in q for key in ['question', 'options', 'correct_answer', 'explanation']):
+                    if len(q['options']) == 4 and isinstance(q['correct_answer'], int):
+                        validated_questions.append(q)
+            
+            if not validated_questions:
+                raise ValueError("No valid questions generated")
+
+            return jsonify({
+                "success": True,
+                "questions": validated_questions
+            }), 200
+
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {str(e)}")
+            print(f"Response text: {response_text}")
+            return jsonify({
+                "error": "Failed to parse generated questions",
+                "questions": []
+            }), 200
+
+    except Exception as e:
+        print(f"Error in generate_gemini_questions: {str(e)}")
+        return jsonify({
+            "error": str(e),
+            "questions": []
+        }), 200
+
 
 if __name__ == "__main__":
 

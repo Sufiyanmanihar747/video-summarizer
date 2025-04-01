@@ -5,3 +5,9 @@
 /venv
 
 /video-summarizer/node_modules
+
+/video-summarizer/.env
+
+/node_modules
+
+/backend/app/__pycache__

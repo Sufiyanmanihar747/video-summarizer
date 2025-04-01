@@ -85,3 +85,119 @@ Summarizing...
 Device set to use cpu
 Token indices sequence length is longer than the specified maximum sequence length for this model (701 > 512). Running this sequence through the model will result in indexing errors
 127.0.0.1 - - [18/Mar/2025 22:07:31] "POST /process_video HTTP/1.1" 200 -
+
+
+
+
+
+
+
+
+
+Model loaded successfully on cpu
+Question Generator initialization complete!
+models/chat-bison-001
+models/text-bison-001
+models/embedding-gecko-001
+models/gemini-1.0-pro-vision-latest
+models/gemini-pro-vision
+models/gemini-1.5-pro-latest
+models/gemini-1.5-pro-001
+models/gemini-1.5-pro-002
+models/gemini-1.5-pro
+models/gemini-1.5-flash-latest
+models/gemini-1.5-flash-001
+models/gemini-1.5-flash-001-tuning
+models/gemini-1.5-flash
+models/gemini-1.5-flash-002
+models/gemini-1.5-flash-8b
+models/gemini-1.5-flash-8b-001
+models/gemini-1.5-flash-8b-latest
+models/gemini-1.5-flash-8b-exp-0827
+models/gemini-1.5-flash-8b-exp-0924
+models/gemini-2.5-pro-exp-03-25
+models/gemini-2.0-flash-exp
+models/gemini-2.0-flash
+models/gemini-2.0-flash-001
+models/gemini-2.0-flash-exp-image-generation
+models/gemini-2.0-flash-lite-001
+models/gemini-2.0-flash-lite
+models/gemini-2.0-flash-lite-preview-02-05
+models/gemini-2.0-flash-lite-preview
+models/gemini-2.0-pro-exp
+models/gemini-2.0-pro-exp-02-05
+models/gemini-exp-1206
+models/gemini-2.0-flash-thinking-exp-01-21
+models/gemini-2.0-flash-thinking-exp
+models/gemini-2.0-flash-thinking-exp-1219
+models/learnlm-1.5-pro-experimental
+models/gemma-3-27b-it
+models/embedding-001
+models/text-embedding-004
+models/gemini-embedding-exp-03-07
+models/gemini-embedding-exp
+models/aqa
+models/imagen-3.0-generate-002
+ * Debugger is active!
+ * Debugger PIN: 726-860-561
+127.0.0.1 - - [28/Mar/2025 22:36:10] "OPTIONS /generate_gemini_questions HTTP/1.1" 200 -
+Sending request to Gemini...
+Error in generate_gemini_questions: 404 models/gemini-1.0-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+127.0.0.1 - - [28/Mar/2025 22:36:11] "POST /generate_gemini_questions HTTP/1.1" 200 -
+ * Detected change in '/home/manihar/video summarizer/backend/app/app.py', reloading
+ * Restarting with stat
+Connected to MongoDB Atlas successfully! 🎉
+Downloading NLTK data...
+NLTK data downloaded successfully
+Starting Question Generator initialization...
+Initializing Question Generator...
+You are using the default legacy behaviour of the <class 'transformers.models.t5.tokenization_t5.T5Tokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+Model loaded successfully on cpu
+Question Generator initialization complete!
+models/chat-bison-001
+models/text-bison-001
+models/embedding-gecko-001
+models/gemini-1.0-pro-vision-latest
+models/gemini-pro-vision
+models/gemini-1.5-pro-latest
+models/gemini-1.5-pro-001
+models/gemini-1.5-pro-002
+models/gemini-1.5-pro
+models/gemini-1.5-flash-latest
+models/gemini-1.5-flash-001
+models/gemini-1.5-flash-001-tuning
+models/gemini-1.5-flash
+models/gemini-1.5-flash-002
+models/gemini-1.5-flash-8b
+models/gemini-1.5-flash-8b-001
+models/gemini-1.5-flash-8b-latest
+models/gemini-1.5-flash-8b-exp-0827
+models/gemini-1.5-flash-8b-exp-0924
+models/gemini-2.5-pro-exp-03-25
+models/gemini-2.0-flash-exp
+models/gemini-2.0-flash
+models/gemini-2.0-flash-001
+models/gemini-2.0-flash-exp-image-generation
+models/gemini-2.0-flash-lite-001
+models/gemini-2.0-flash-lite
+models/gemini-2.0-flash-lite-preview-02-05
+models/gemini-2.0-flash-lite-preview
+models/gemini-2.0-pro-exp
+models/gemini-2.0-pro-exp-02-05
+models/gemini-exp-1206
+models/gemini-2.0-flash-thinking-exp-01-21
+models/gemini-2.0-flash-thinking-exp
+models/gemini-2.0-flash-thinking-exp-1219
+models/learnlm-1.5-pro-experimental
+models/gemma-3-27b-it
+models/embedding-001
+models/text-embedding-004
+models/gemini-embedding-exp-03-07
+models/gemini-embedding-exp
+models/aqa
+models/imagen-3.0-generate-002
+
+
+TO UPDATE THE VIDEO DOWNLOADER FROM YOUTUBE
+
+pip install -U yt-dlp

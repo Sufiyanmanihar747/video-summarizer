@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
+import Quiz from './Quiz';
 import api from '../utilities/api';
 import './History.css';
+import GeminiQuiz from './GeminiQuiz';
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -10,6 +12,12 @@ function History() {
   const [selectedSummary, setSelectedSummary] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [selectedTranscription, setSelectedTranscription] = useState(null);
+  const [geminiQuestions, setGeminiQuestions] = useState({});
+  const [loadingGemini, setLoadingGemini] = useState({});
+  const [showGeminiQuiz, setShowGeminiQuiz] = useState(false);
+  const [currentQuestions, setCurrentQuestions] = useState(null);
 
   useEffect(() => {
     fetchHistory();
@@ -43,14 +51,14 @@ function History() {
     });
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText("Your text here").then(() => {
+  const handleCopy = (item) => {
+    navigator.clipboard.writeText(item.transcription).then(() => {
       alert("Copied to clipboard!");
     });
   };
   
-  const handleDownload = () => {
-    const blob = new Blob(["Your text here"], { type: "text/plain" });
+  const handleDownload = (item) => {
+    const blob = new Blob([item.transcription], { type: "text/plain" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "file.txt";
@@ -75,6 +83,16 @@ function History() {
     }
   };
 
+  const handleStartQuiz = (transcription) => {
+    setSelectedTranscription(transcription);
+    setShowQuiz(true);
+  };
+
+  const handleCloseQuiz = () => {
+    setShowQuiz(false);
+    setSelectedTranscription(null);
+  };
+
   const TypingText = ({ text, speed = 10 }) => {
     const [displayedText, setDisplayedText] = useState("");
   
@@ -95,93 +113,173 @@ function History() {
     return <p>{displayedText}</p>;
   };
 
+  const handleGeminiQuestions = async (transcription, summaryId) => {
+    try {
+      setLoadingGemini(prev => ({ ...prev, [summaryId]: true }));
+      
+      const response = await api.post('/generate_gemini_questions', {
+        text: transcription
+      });
+
+      if (response.data && response.data.questions) {
+        setCurrentQuestions(response.data.questions);
+        setShowGeminiQuiz(true);
+      }
+    } catch (error) {
+      console.error('Error generating Gemini questions:', error);
+    } finally {
+      setLoadingGemini(prev => ({ ...prev, [summaryId]: false }));
+    }
+  };
+
   return (
     <div className="history-container">
       <Header />
       <div className="history-content">
-        <div className="history-header">
-          <h1>Your Summary History</h1>
-          <div className="history-controls">
-            <div className="search-box">
-              <i className="fas fa-search"></i>
-              <input
-                type="text"
-                placeholder="Search summaries..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        {showQuiz ? (
+          <div className="quiz-overlay">
+            <div className="quiz-modal">
+              <button className="close-quiz-btn" onClick={handleCloseQuiz}>
+                <i className="fas fa-times"></i>
+              </button>
+              <Quiz transcription={selectedTranscription} />
             </div>
-            <select 
-              value={filter} 
-              onChange={(e) => setFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="older">Older</option>
-            </select>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="loading-state">
-            <i className="fas fa-spinner fa-spin"></i>
-            <p>Loading your history...</p>
-          </div>
-        ) : error ? (
-          <div className="error-state">
-            <i className="fas fa-exclamation-circle"></i>
-            <p>{error}</p>
-          </div>
-        ) : filteredHistory.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-history"></i>
-            <p>No summaries found</p>
           </div>
         ) : (
-          <div className="history-list">
-            {filteredHistory.map((item, index) => (
-              <div key={index} className="history-item">
-                <div className="history-item-header" onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}>
-                  <div className="header-content">
-                    <h3>{item.title.replace(/videos\//, '').replace(/\.mp4$/, '')}</h3>
-                    <span className="date">{formatDate(item.created_at)}</span>
-                  </div>
-                  <i className={`fas fa-chevron-${selectedSummary === item ? 'up' : 'down'}`}></i>
+          <>
+            <div className="history-header">
+              <h1>Your Summary History</h1>
+              <div className="history-controls">
+                <div className="search-box">
+                  <i className="fas fa-search"></i>
+                  <input
+                    type="text"
+                    placeholder="Search summaries..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
-                
-                {selectedSummary === item && (
-                  <div className="history-item-content">
-                    <div className="content-section summary-section">
-                      <h4>Summary</h4>
-                      <div className="content-box">
-                      <TypingText text={item.summary} />
+                <select 
+                  value={filter} 
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="older">Older</option>
+                </select>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="loading-state">
+                <i className="fas fa-spinner fa-spin"></i>
+                <p>Loading your history...</p>
+              </div>
+            ) : error ? (
+              <div className="error-state">
+                <i className="fas fa-exclamation-circle"></i>
+                <p>{error}</p>
+              </div>
+            ) : filteredHistory.length === 0 ? (
+              <div className="empty-state">
+                <i className="fas fa-history"></i>
+                <p>No summaries found</p>
+              </div>
+            ) : (
+              <div className="history-list">
+                {filteredHistory.map((item, index) => (
+                  <div key={index} className="history-item">
+                    <div className="history-item-header" onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}>
+                      <div className="header-content">
+                        <h3>{item.title.replace(/videos\//, '').replace(/\.mp4$/, '')}</h3>
+                        <span className="date">{formatDate(item.created_at)}</span>
                       </div>
+                      <i className={`fas fa-chevron-${selectedSummary === item ? 'up' : 'down'}`}></i>
                     </div>
                     
-                    <div className="content-section transcription-section">
-                      <h4>Transcription</h4>
-                      <div className="content-box">
-                        <p>{item.transcription}</p>
-                      </div>
-                    </div>
+                    {selectedSummary === item && (
+                      <div className="history-item-content">
+                        <div className="content-section summary-section">
+                          <h4>Summary</h4>
+                          <div className="content-box">
+                          <TypingText text={item.summary} />
+                          </div>
+                        </div>
+                        
+                        <div className="content-section transcription-section">
+                          <h4>Transcription</h4>
+                          <div className="content-box">
+                            <p>{item.transcription}</p>
+                          </div>
+                        </div>
 
-                    <div className="actions">
-                      <button className="action-button" onClick={() => handleCopy()}>
-                        <i className="fas fa-copy"></i> Copy
-                      </button>
-                      <button className="action-button" onClick={() => handleDownload()}>
-                        <i className="fas fa-download"></i> Download
-                      </button>
-                      {/* <button className="action-button" onClick={() => handleShare()}>
-                        <i className="fas fa-share"></i> Share
-                      </button> */}
-                    </div>
+                        <div className="actions">
+                          <button className="action-button" onClick={() => handleCopy(item)}>
+                            <i className="fas fa-copy"></i> Copy
+                          </button>
+                          <button className="action-button" onClick={() => handleDownload(item)}>
+                            <i className="fas fa-download"></i> Download
+                          </button>
+                          <button 
+                            className="action-button quiz-button"
+                            onClick={() => handleStartQuiz(item.transcription)}
+                          >
+                            <i className="fas fa-question-circle"></i>
+                            Start Quiz
+                          </button>
+                          <button 
+                            className={`action-button gemini-button ${loadingGemini[item.id] ? 'loading' : ''}`}
+                            onClick={() => handleGeminiQuestions(item.transcription, item.id)}
+                            disabled={loadingGemini[item.id]}
+                          >
+                            <i className={`fas ${loadingGemini[item.id] ? 'fa-spinner fa-spin' : 'fa-robot'}`}></i>
+                            {loadingGemini[item.id] ? 'Generating...' : 'Gemini Questions'}
+                          </button>
+                        </div>
+
+                        {geminiQuestions[item.id] && (
+                          <div className="gemini-questions-section">
+                            <h4>Gemini Generated Questions</h4>
+                            <div className="questions-list">
+                              {geminiQuestions[item.id].map((q, qIndex) => (
+                                <div key={qIndex} className="question-item">
+                                  <p className="question-text">{q.question}</p>
+                                  <div className="options-list">
+                                    {q.options.map((option, oIndex) => (
+                                      <div 
+                                        key={oIndex} 
+                                        className={`option ${q.correct_answer === oIndex ? 'correct' : ''}`}
+                                      >
+                                        {option}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {q.explanation && (
+                                    <p className="explanation">{q.explanation}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
+        )}
+        
+        {showGeminiQuiz && currentQuestions && (
+          <GeminiQuiz 
+            questions={currentQuestions} 
+            onClose={() => {
+              setShowGeminiQuiz(false);
+              setCurrentQuestions(null);
+            }}
+          />
         )}
       </div>
     </div>
