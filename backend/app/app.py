@@ -2,6 +2,7 @@ from datetime import timedelta, datetime
 import os
 import subprocess
 from threading import get_native_id
+from bson import ObjectId
 from flask import Flask, request as flask_request, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -236,9 +237,12 @@ def get_history():
     try:
         current_user = get_jwt_identity()
         user_summaries = list(summaries.find(
-            {"user_email": current_user},
-            {"_id": 0}
+            {"user_email": current_user}
         ).sort("created_at", -1))
+        
+        # Convert ObjectId to string for each summary
+        for summary in user_summaries:
+            summary['_id'] = str(summary['_id'])
         
         return jsonify({"history": user_summaries}), 200
         
@@ -345,6 +349,39 @@ def generate_gemini_questions():
             "questions": []
         }), 200
 
+@app.route('/delete_summary', methods=['DELETE'])
+@jwt_required()
+def delete_summary():
+    try:
+        current_user = get_jwt_identity()
+        data = flask_request.get_json()
+
+        summary_id = data.get('summaryId')
+
+        if not summary_id:
+            return jsonify({"error": "No summary ID provided"}), 400
+
+            # Delete the summary from MongoDB
+        result = summaries.delete_one({
+            "_id": ObjectId(summary_id),
+            "user_email": current_user  # Ensure user can only delete their own summaries
+        })
+
+            # if result.deleted_count > 0:
+            #     # Also delete associated questions if they exist
+            #     gemini_questions.delete_many({
+            #         "summary_id": summary_id,
+            #         "user_email": current_user
+            #     })
+            
+        return jsonify({
+            "success": True,
+            "message": "Summary deleted successfully"
+        }), 200
+
+    except Exception as e:
+        print(f"Error deleting summary: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
 

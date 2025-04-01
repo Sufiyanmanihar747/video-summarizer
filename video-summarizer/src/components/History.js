@@ -4,6 +4,7 @@ import Quiz from './Quiz';
 import api from '../utilities/api';
 import './History.css';
 import GeminiQuiz from './GeminiQuiz';
+import DeleteModal from './DeleteModal';
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -18,6 +19,12 @@ function History() {
   const [loadingGemini, setLoadingGemini] = useState({});
   const [showGeminiQuiz, setShowGeminiQuiz] = useState(false);
   const [currentQuestions, setCurrentQuestions] = useState(null);
+  const [deletingIds, setDeletingIds] = useState({});
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    summaryId: null,
+    title: ''
+  });
 
   useEffect(() => {
     fetchHistory();
@@ -132,8 +139,48 @@ function History() {
     }
   };
 
+  const handleDeleteClick = (summaryId, title) => {
+    setDeleteModal({
+      isOpen: true,
+      summaryId,
+      title
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const summaryId = deleteModal.summaryId;
+    
+    try {
+      setDeletingIds(prev => ({ ...prev, [summaryId]: true }));
+
+      const response = await api.delete('/delete_summary', {
+        data: { summaryId }
+      });
+
+      if (response.data.success) {
+        setHistory(prevHistory => 
+          prevHistory.filter(item => item._id !== summaryId)
+        );
+        if (selectedSummary && selectedSummary._id === summaryId) {
+          setSelectedSummary(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting summary:', error);
+    } finally {
+      setDeletingIds(prev => ({ ...prev, [summaryId]: false }));
+      setDeleteModal({ isOpen: false, summaryId: null, title: '' });
+    }
+  };
+
   return (
     <div className="history-container">
+      <DeleteModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, summaryId: null, title: '' })}
+        onConfirm={handleDeleteConfirm}
+        title={deleteModal.title}
+      />
       <Header />
       <div className="history-content">
         {showQuiz ? (
@@ -188,85 +235,109 @@ function History() {
               </div>
             ) : (
               <div className="history-list">
-                {filteredHistory.map((item, index) => (
-                  <div key={index} className="history-item">
-                    <div className="history-item-header" onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}>
-                      <div className="header-content">
-                        <h3>{item.title.replace(/videos\//, '').replace(/\.mp4$/, '')}</h3>
-                        <span className="date">{formatDate(item.created_at)}</span>
+                {filteredHistory.map((item, index) => {
+                  const itemId = item._id || item.id;
+                  const itemTitle = item.title.replace(/videos\//, '').replace(/\.mp4$/, '');
+                  
+                  return (
+                    <div key={itemId || index} className="history-item">
+                      <div className="history-item-header">
+                        <div className="header-content">
+                          <h3 onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}>{itemTitle}</h3>
+                          <span className="date">{formatDate(item.created_at)}</span>
+                        </div>
+                        <div className="header-actions">
+                          <button
+                            className={`delete-button ${deletingIds[itemId] ? 'deleting' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(itemId, itemTitle);
+                            }}
+                            disabled={deletingIds[itemId]}
+                          >
+                            {deletingIds[itemId] ? (
+                              <i className="fas fa-spinner fa-spin"></i>
+                            ) : (
+                              <i className="fas fa-trash"></i>
+                            )}
+                          </button>
+                          <i 
+                            className={`fas fa-chevron-${selectedSummary === item ? 'up' : 'down'}`}
+                            onClick={() => setSelectedSummary(selectedSummary === item ? null : item)}
+                          ></i>
+                        </div>
                       </div>
-                      <i className={`fas fa-chevron-${selectedSummary === item ? 'up' : 'down'}`}></i>
-                    </div>
-                    
-                    {selectedSummary === item && (
-                      <div className="history-item-content">
-                        <div className="content-section summary-section">
-                          <h4>Summary</h4>
-                          <div className="content-box">
-                          <TypingText text={item.summary} />
-                          </div>
-                        </div>
-                        
-                        <div className="content-section transcription-section">
-                          <h4>Transcription</h4>
-                          <div className="content-box">
-                            <p>{item.transcription}</p>
-                          </div>
-                        </div>
-
-                        <div className="actions">
-                          <button className="action-button" onClick={() => handleCopy(item)}>
-                            <i className="fas fa-copy"></i> Copy
-                          </button>
-                          <button className="action-button" onClick={() => handleDownload(item)}>
-                            <i className="fas fa-download"></i> Download
-                          </button>
-                          <button 
-                            className="action-button quiz-button"
-                            onClick={() => handleStartQuiz(item.transcription)}
-                          >
-                            <i className="fas fa-question-circle"></i>
-                            Start Quiz
-                          </button>
-                          <button 
-                            className={`action-button gemini-button ${loadingGemini[item.id] ? 'loading' : ''}`}
-                            onClick={() => handleGeminiQuestions(item.transcription, item.id)}
-                            disabled={loadingGemini[item.id]}
-                          >
-                            <i className={`fas ${loadingGemini[item.id] ? 'fa-spinner fa-spin' : 'fa-robot'}`}></i>
-                            {loadingGemini[item.id] ? 'Generating...' : 'Gemini Questions'}
-                          </button>
-                        </div>
-
-                        {geminiQuestions[item.id] && (
-                          <div className="gemini-questions-section">
-                            <h4>Gemini Generated Questions</h4>
-                            <div className="questions-list">
-                              {geminiQuestions[item.id].map((q, qIndex) => (
-                                <div key={qIndex} className="question-item">
-                                  <p className="question-text">{q.question}</p>
-                                  <div className="options-list">
-                                    {q.options.map((option, oIndex) => (
-                                      <div 
-                                        key={oIndex} 
-                                        className={`option ${q.correct_answer === oIndex ? 'correct' : ''}`}
-                                      >
-                                        {option}
-                                      </div>
-                                    ))}
-                                  </div>
-                                  {q.explanation && (
-                                    <p className="explanation">{q.explanation}</p>
-                                  )}
-                                </div>
-                              ))}
+                      
+                      {selectedSummary === item && (
+                        <div className="history-item-content">
+                          <div className="content-section summary-section">
+                            <h4>Summary</h4>
+                            <div className="content-box">
+                            <TypingText text={item.summary} />
                             </div>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                          
+                          <div className="content-section transcription-section">
+                            <h4>Transcription</h4>
+                            <div className="content-box">
+                              <p>{item.transcription}</p>
+                            </div>
+                          </div>
+
+                          <div className="actions">
+                            <button className="action-button" onClick={() => handleCopy(item)}>
+                              <i className="fas fa-copy"></i> Copy
+                            </button>
+                            <button className="action-button" onClick={() => handleDownload(item)}>
+                              <i className="fas fa-download"></i> Download
+                            </button>
+                            <button 
+                              className="action-button quiz-button"
+                              onClick={() => handleStartQuiz(item.transcription)}
+                            >
+                              <i className="fas fa-question-circle"></i>
+                              Start Quiz
+                            </button>
+                            <button 
+                              className={`action-button gemini-button ${loadingGemini[item.id] ? 'loading' : ''}`}
+                              onClick={() => handleGeminiQuestions(item.transcription, item.id)}
+                              disabled={loadingGemini[item.id]}
+                            >
+                              <i className={`fas ${loadingGemini[item.id] ? 'fa-spinner fa-spin' : 'fa-robot'}`}></i>
+                              {loadingGemini[item.id] ? 'Generating...' : 'Gemini Questions'}
+                            </button>
+                          </div>
+
+                          {geminiQuestions[item.id] && (
+                            <div className="gemini-questions-section">
+                              <h4>Gemini Generated Questions</h4>
+                              <div className="questions-list">
+                                {geminiQuestions[item.id].map((q, qIndex) => (
+                                  <div key={qIndex} className="question-item">
+                                    <p className="question-text">{q.question}</p>
+                                    <div className="options-list">
+                                      {q.options.map((option, oIndex) => (
+                                        <div 
+                                          key={oIndex} 
+                                          className={`option ${q.correct_answer === oIndex ? 'correct' : ''}`}
+                                        >
+                                          {option}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    {q.explanation && (
+                                      <p className="explanation">{q.explanation}</p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </>
