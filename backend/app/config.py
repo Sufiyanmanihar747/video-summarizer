@@ -12,6 +12,7 @@ db = client[DB_NAME]
 
 users_collection = db["users"]
 summaries_collection = db["summaries"]
+gemini_questions = db['gemini_questions']
 
 
 try:

@@ -27,17 +27,74 @@ function History() {
   });
 
   useEffect(() => {
-    fetchHistory();
+    const fetchAllData = async () => {
+      try {
+        const response = await api.get('/get_history');
+        setHistory(response.data.history);
+        
+        // Fetch questions for each summary
+        for (const summary of response.data.history) {
+          fetchGeminiQuestions(summary._id);
+        }
+      } catch (err) {
+        setError('Failed to load history');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
   }, []);
 
-  const fetchHistory = async () => {
+  const fetchGeminiQuestions = async (summaryId) => {
     try {
-      const response = await api.get('/get_history');
-      setHistory(response.data.history);
-    } catch (err) {
-      setError('Failed to load history');
+      const response = await api.get(`/get_gemini_questions/${summaryId}`);
+      if (response.data.success) {
+        setGeminiQuestions(prev => ({
+          ...prev,
+          [summaryId]: response.data.questions
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching Gemini questions:', error);
+    }
+  };
+
+  const handleGeminiQuestions = async (transcription, summaryId) => {
+    try {
+      setLoadingGemini(prev => ({ ...prev, [summaryId]: true }));
+      console.log(summaryId)
+      // First check if we already have questions
+      if (geminiQuestions[summaryId]) {
+        setCurrentQuestions(geminiQuestions[summaryId]);
+        setShowGeminiQuiz(true);
+        return;
+      }
+
+      // Generate new questions
+      const response = await api.post('/generate_gemini_questions', {
+        text: transcription
+      });
+
+      console.log(response);
+      if (response.data && response.data.questions) {
+        // Save questions to database
+        await api.post('/save_gemini_questions', {
+          summaryId,
+          questions: response.data.questions
+        });
+
+        setGeminiQuestions(prev => ({
+          ...prev,
+          [summaryId]: response.data.questions
+        }));
+        setCurrentQuestions(response.data.questions);
+        setShowGeminiQuiz(true);
+      }
+    } catch (error) {
+      console.error('Error generating/saving Gemini questions:', error);
     } finally {
-      setLoading(false);
+      setLoadingGemini(prev => ({ ...prev, [summaryId]: false }));
     }
   };
 
@@ -118,25 +175,6 @@ function History() {
     }, [text, speed]);
   
     return <p>{displayedText}</p>;
-  };
-
-  const handleGeminiQuestions = async (transcription, summaryId) => {
-    try {
-      setLoadingGemini(prev => ({ ...prev, [summaryId]: true }));
-      
-      const response = await api.post('/generate_gemini_questions', {
-        text: transcription
-      });
-
-      if (response.data && response.data.questions) {
-        setCurrentQuestions(response.data.questions);
-        setShowGeminiQuiz(true);
-      }
-    } catch (error) {
-      console.error('Error generating Gemini questions:', error);
-    } finally {
-      setLoadingGemini(prev => ({ ...prev, [summaryId]: false }));
-    }
   };
 
   const handleDeleteClick = (summaryId, title) => {
@@ -273,7 +311,7 @@ function History() {
                           <div className="content-section summary-section">
                             <h4>Summary</h4>
                             <div className="content-box">
-                            <TypingText text={item.summary} />
+                              <TypingText text={item.summary} />
                             </div>
                           </div>
                           
@@ -295,44 +333,29 @@ function History() {
                               className="action-button quiz-button"
                               onClick={() => handleStartQuiz(item.transcription)}
                             >
-                              <i className="fas fa-question-circle"></i>
-                              Start Quiz
+                              <i className="fas fa-question-circle"></i> Start Quiz
                             </button>
                             <button 
-                              className={`action-button gemini-button ${loadingGemini[item.id] ? 'loading' : ''}`}
-                              onClick={() => handleGeminiQuestions(item.transcription, item.id)}
-                              disabled={loadingGemini[item.id]}
+                              className={`action-button gemini-button ${loadingGemini[itemId] ? 'loading' : ''}`}
+                              onClick={() => handleGeminiQuestions(item.transcription, itemId)}
+                              disabled={loadingGemini[itemId]}
                             >
-                              <i className={`fas ${loadingGemini[item.id] ? 'fa-spinner fa-spin' : 'fa-robot'}`}></i>
-                              {loadingGemini[item.id] ? 'Generating...' : 'Gemini Questions'}
+                              <i className={`fas ${loadingGemini[itemId] ? 'fa-spinner fa-spin' : 'fa-robot'}`}></i>
+                              {loadingGemini[itemId] ? 'Generating...' : 'Generate AI Questions'}
                             </button>
+                            {geminiQuestions[itemId] && (
+                              <button 
+                                className="action-button practice-button"
+                                onClick={() => {
+                                  setCurrentQuestions(geminiQuestions[itemId]);
+                                  setShowGeminiQuiz(true);
+                                }}
+                              >
+                                <i className="fas fa-graduation-cap"></i>
+                                Practice AI Questions
+                              </button>
+                            )}
                           </div>
-
-                          {geminiQuestions[item.id] && (
-                            <div className="gemini-questions-section">
-                              <h4>Gemini Generated Questions</h4>
-                              <div className="questions-list">
-                                {geminiQuestions[item.id].map((q, qIndex) => (
-                                  <div key={qIndex} className="question-item">
-                                    <p className="question-text">{q.question}</p>
-                                    <div className="options-list">
-                                      {q.options.map((option, oIndex) => (
-                                        <div 
-                                          key={oIndex} 
-                                          className={`option ${q.correct_answer === oIndex ? 'correct' : ''}`}
-                                        >
-                                          {option}
-                                        </div>
-                                      ))}
-                                    </div>
-                                    {q.explanation && (
-                                      <p className="explanation">{q.explanation}</p>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>

@@ -138,6 +138,7 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
@@ -201,12 +202,11 @@
   }
 
   .actions {
-    flex-wrap: wrap;
+    flex-direction: column;
   }
 
   .action-button {
-    flex: 1;
-    min-width: 120px;
+    width: 100%;
     justify-content: center;
   }
 } 
@@ -301,13 +301,6 @@
 
 .action-button i {
   font-size: 1rem;
-}
-
-.actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
 }
 
 .gemini-button {
@@ -408,4 +401,29 @@
 
 .delete-button i {
   font-size: 1.2rem;
+}
+
+/* Add these new styles */
+.practice-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+}
+
+.practice-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+}
+
+.practice-button i {
+  font-size: 1.1rem;
 }

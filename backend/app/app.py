@@ -10,7 +10,7 @@ from extract_audio import extract_audio
 from transcribe import transcribe_audio
 from summarize import summarize_text
 from werkzeug.security import generate_password_hash, check_password_hash
-from config import users, summaries
+from config import users, summaries, gemini_questions
 from question_generator import question_generator
 import google.generativeai as genai
 import json
@@ -349,35 +349,99 @@ def generate_gemini_questions():
             "questions": []
         }), 200
 
+@app.route('/save_gemini_questions', methods=['POST'])
+@jwt_required()
+def save_gemini_questions():
+    try:
+        current_user = get_jwt_identity()
+        data = flask_request.get_json()
+        
+        summary_id = data.get('summaryId')
+        questions = data.get('questions')
+        
+        if not summary_id or not questions:
+            return jsonify({"error": "Missing required data"}), 400
+
+        # Save questions to MongoDB
+        question_data = {
+            "user_email": current_user,
+            "summary_id": summary_id,
+            "questions": questions,
+            "created_at": datetime.utcnow()
+        }
+        
+        result = gemini_questions.insert_one(question_data)
+        
+        return jsonify({
+            "success": True,
+            "message": "Questions saved successfully",
+            "questionId": str(result.inserted_id)
+        }), 201
+        
+    except Exception as e:
+        print(f"Error saving Gemini questions: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_gemini_questions/<summary_id>', methods=['GET'])
+@jwt_required()
+def get_gemini_questions(summary_id):
+    try:
+        current_user = get_jwt_identity()
+        
+        # Find questions for this summary
+        questions = gemini_questions.find_one({
+            "user_email": current_user,
+            "summary_id": summary_id
+        })
+        
+        if questions:
+            questions['_id'] = str(questions['_id'])
+            return jsonify({
+                "success": True,
+                "questions": questions['questions']
+            }), 200
+        
+        return jsonify({
+            "success": False,
+            "message": "No questions found"
+        }), 404
+        
+    except Exception as e:
+        print(f"Error fetching Gemini questions: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/delete_summary', methods=['DELETE'])
 @jwt_required()
 def delete_summary():
     try:
         current_user = get_jwt_identity()
         data = flask_request.get_json()
-
         summary_id = data.get('summaryId')
 
         if not summary_id:
             return jsonify({"error": "No summary ID provided"}), 400
 
-            # Delete the summary from MongoDB
+        # Delete the summary
         result = summaries.delete_one({
             "_id": ObjectId(summary_id),
-            "user_email": current_user  # Ensure user can only delete their own summaries
+            "user_email": current_user
         })
 
-            # if result.deleted_count > 0:
-            #     # Also delete associated questions if they exist
-            #     gemini_questions.delete_many({
-            #         "summary_id": summary_id,
-            #         "user_email": current_user
-            #     })
+        if result.deleted_count > 0:
+            # Also delete associated questions
+            gemini_questions.delete_many({
+                "summary_id": summary_id,
+                "user_email": current_user
+            })
             
-        return jsonify({
-            "success": True,
-            "message": "Summary deleted successfully"
-        }), 200
+            return jsonify({
+                "success": True,
+                "message": "Summary and associated questions deleted successfully"
+            }), 200
+        else:
+            return jsonify({
+                "error": "Summary not found or unauthorized"
+            }), 404
 
     except Exception as e:
         print(f"Error deleting summary: {str(e)}")
