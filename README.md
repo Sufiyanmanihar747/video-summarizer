@@ -94,4 +94,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) for video downloading capabilities.
 
 ## Contact
-For any inquiries, please contact [your-email@example.com](mailto:sufiyanmanihar52@gmail.com).
+For any inquiries, please contact [sufiyanmanihar52@gmail.com](mailto:sufiyanmanihar52@gmail.com).
