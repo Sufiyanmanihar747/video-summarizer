@@ -36,7 +36,7 @@ The Video Summarizer is a web application that allows users to upload videos, wh
 ### Backend Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/video-summarizer.git
+   git clone https://github.com/sufiyanmanihar747/video-summarizer.git
    cd video-summarizer/backend
    ```
 
