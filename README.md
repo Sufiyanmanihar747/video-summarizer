@@ -13,6 +13,22 @@ The Video Summarizer is a web application that allows users to upload videos, wh
 - **History Tracking:** View, manage, and delete past summaries and generated questions.
 - **Responsive Design:** User-friendly interface that works on various devices.
 
+## Screenshots
+Here are some screenshots of the application:
+
+### Home Page
+![Home Page](screenshots/home.png)
+
+### History
+![History](screenshots/history.png)
+
+### Summary and Transcription
+![Summary and Transcription](screenshots/summary.png)
+
+### Generated Questions
+![Generated Questions](screenshots/questions.png)
+
+
 ## Technologies Used
 - **Frontend:**
   - React.js for building the user interface.
@@ -94,4 +110,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) for video downloading capabilities.
 
 ## Contact
+<<<<<<< HEAD
 For any inquiries, please contact [sufiyanmanihar52@gmail.com](mailto:sufiyanmanihar52@gmail.com).
+=======
+For any inquiries, please contact [sufiyanmanihar52@gmail.com](mailto:sufiyanmanihar52@gmail.com).
+>>>>>>> 4aaf62a (Update README.md: added application screenshots for better visualization and updated contact email.)
