@@ -32,6 +32,10 @@ function Header() {
             <i className="fas fa-history"></i>
             History
           </Link>
+          <Link to="/chat" className="nav-link">
+            <i className="fas fa-comments"></i>
+            Chat
+          </Link>
           {/* <Link to="/favorites" className="nav-link">
             <i className="fas fa-star"></i>
             Favorites

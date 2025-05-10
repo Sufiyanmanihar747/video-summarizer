@@ -16,6 +16,8 @@ app = Flask(__name__)
 
 def extract_audio(video_path, output_audio_path=None):
     """Extracts audio from the video and saves it to output_audio_path."""
+    print(video_path) #videos/Python in 100 Seconds.mp4
+    print(output_audio_path)    #./audio/20250330_025337_x7X9w_GIm1s.mp3
     try:
         if output_audio_path is None:
             video_filename = os.path.splitext(os.path.basename(video_path))[0]

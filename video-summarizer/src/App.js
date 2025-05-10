@@ -6,6 +6,7 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import History from './components/History';
+import Chat from './components/Chat';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useUser();
@@ -61,6 +62,14 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <History />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/chat" 
+        element={
+          <PrivateRoute>
+            <Chat />
           </PrivateRoute>
         } 
       />

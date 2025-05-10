@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from './Header';
 import "./Home.css";
 import api from "../utilities/api";
+import Quiz from './Quiz';
 
 function Home() {
   const [url, setUrl] = useState("");
@@ -10,6 +11,7 @@ function Home() {
   const [status, setStatus] = useState('');
   const [summary, setSummary] = useState('');
   const [showInstructions, setShowInstructions] = useState(true);
+  const [transcription, setTranscription] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +25,7 @@ function Home() {
       if (response.data.summary) {
         setSummary(response.data.summary);
         setStatus('Summary generated successfully!');
+        setTranscription(response.data.transcript || '');
 
         await api.post('/save_summary', {
           url,
@@ -163,6 +166,10 @@ function Home() {
               </div>
             </div>
           )}
+{/* 
+          {summary && transcription && (
+            <Quiz transcription={transcription} />
+          )} */}
         </div>
 
         <div className="features-section">

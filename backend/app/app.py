@@ -71,6 +71,24 @@ def generate_unique_filename(url):
         video_id = timestamp
     return f"{timestamp}_{video_id}"
 
+def cleanup_folders():
+    """Clean up files in the specified folders"""
+    folders = ["videos", "audio", "transcripts", "summaries"]
+    for folder in folders:
+        try:
+            # Check if folder exists
+            if os.path.exists(folder):
+                # Remove all files in the folder
+                for filename in os.listdir(folder):
+                    file_path = os.path.join(folder, filename)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.unlink(file_path)
+                    except Exception as e:
+                        print(f"Error deleting {file_path}: {e}")
+        except Exception as e:
+            print(f"Error cleaning up {folder}: {e}")
+
 @app.route('/register', methods=['POST'])
 def register():
     try:
@@ -147,6 +165,9 @@ def process_video():
         
         if not url:
             return jsonify({"error": "No URL provided"}), 400
+
+        # Clean up old files first
+        cleanup_folders()
 
         unique_id = generate_unique_filename(url)
 

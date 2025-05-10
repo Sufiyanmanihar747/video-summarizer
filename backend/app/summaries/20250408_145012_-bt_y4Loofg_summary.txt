@@ -1,0 +1,1 @@
+MongoDB is the world's most advanced and popular document-oriented database . it was created in 2007 by doubleClick, a company serving 400,000 ads per second . this allows you to evolve your data structures rapidly without running complex database migrations .
